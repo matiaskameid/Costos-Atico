@@ -15,16 +15,16 @@ un listado de nuevos precios.
   en **NUEVO COSTO PROMEDIO** (indicando que no se modificó).
 """)
 
-# 1. Subida del Excel maestro
-master_file = st.file_uploader("1. Sube el Excel maestro (productos de bodega)", type=["xlsx", "xls"])
+# 1. Subida del Excel maestro (solo permite archivos .xlsx)
+master_file = st.file_uploader("1. Sube el Excel maestro (productos de bodega)", type=["xlsx"])
 
-# 2. Subida del Excel de nuevos precios
-new_prices_file = st.file_uploader("2. Sube el Excel con el listado de nuevos precios", type=["xlsx", "xls"])
+# 2. Subida del Excel de nuevos precios (solo permite archivos .xlsx)
+new_prices_file = st.file_uploader("2. Sube el Excel con el listado de nuevos precios", type=["xlsx"])
 
 if master_file and new_prices_file:
     # --- Procesar el Excel maestro (no se muestra la vista previa) ---
     df_master = pd.read_excel(master_file)
-    # Forzar que los nombres de columnas en el excel maestro sean strings (por si acaso)
+    # Forzar que los nombres de columnas sean string (por si hay algún valor numérico)
     df_master.columns = df_master.columns.astype(str)
     
     # Crear la columna auxiliar "CODIGO_CLEAN" extrayendo la parte anterior a la barra "/"
@@ -41,7 +41,6 @@ if master_file and new_prices_file:
     
     # --- Lectura preliminar sin encabezado para mostrar vista previa con índice ajustado ---
     df_preview = pd.read_excel(new_prices_file, header=None)
-    # Convertir los nombres de columnas a string para evitar errores en la conversión
     df_preview.columns = df_preview.columns.map(str)
     df_preview.index += 1  # Ajuste para que el índice empiece en 1
     st.dataframe(df_preview.head(20))
@@ -56,7 +55,6 @@ if master_file and new_prices_file:
     
     # --- Lectura del Excel de nuevos precios usando la fila indicada como encabezado ---
     df_new_prices = pd.read_excel(new_prices_file, header=header_row - 1)
-    # Convertir los nombres de columnas a string para evitar errores posteriores
     df_new_prices.columns = df_new_prices.columns.astype(str)
     
     st.subheader("Tabla de listado de precios")
@@ -94,7 +92,6 @@ if master_file and new_prices_file:
             current_cost = row["COSTO PROMEDIO ACTUAL"]
             if code_clean in new_cost_mapping:
                 new_price = new_cost_mapping[code_clean]
-                # Calcular el precio efectivo tras aplicar el descuento
                 effective_price = new_price * (1 - discount / 100)
                 if effective_price == current_cost:
                     return 0
